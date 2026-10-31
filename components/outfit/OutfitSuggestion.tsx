@@ -64,7 +64,7 @@ export function OutfitSuggestion({
         {suggestion.worn_on && <span className="chip border-worn/30 bg-worn-soft/60 text-worn-ink">{wornToday ? 'Wearing it today' : `Worn ${prettyDate(suggestion.worn_on)}`}</span>}
       </header>
 
-      <div className={`grid gap-px bg-line ${picks.length > 4 ? 'grid-cols-2 sm:grid-cols-3' : picks.length === 3 ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2'}`}>
+      <div className={`grid grid-cols-2 gap-px bg-line ${picks.length === 3 || picks.length > 4 ? 'sm:grid-cols-3' : ''} ${picks.length === 4 ? 'lg:grid-cols-4' : ''}`}>
         {picks.map((p, i) => {
           const piece = pieces[p.item_id]
           return (

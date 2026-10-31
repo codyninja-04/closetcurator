@@ -66,7 +66,17 @@ create table outfit_suggestions (
   worn_on date
 );
 
+-- One row per Claude call, only used for the daily caps. Users can read and
+-- add rows but not delete them, so the cap can't be reset from the client.
+create table ai_calls (
+  id uuid primary key default uuid_generate_v4(),
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
+  created_at timestamptz not null default now(),
+  kind text not null check (kind in ('scan', 'outfit'))
+);
+
 create index idx_items_user on wardrobe_items(user_id, category, is_active);
+create index idx_ai_calls_user on ai_calls(user_id, kind, created_at desc);
 create index idx_wear_item on wear_log(item_id, worn_date desc);
 create index idx_wear_date on wear_log(worn_date desc);
 create index idx_outfits_user on outfit_suggestions(user_id, created_at desc);
@@ -109,6 +119,7 @@ alter table profiles enable row level security;
 alter table wardrobe_items enable row level security;
 alter table wear_log enable row level security;
 alter table outfit_suggestions enable row level security;
+alter table ai_calls enable row level security;
 
 -- Users can read their profile and change their preferences, never the plan.
 create policy "own_profile_read" on profiles for select using (auth.uid() = user_id);
@@ -130,6 +141,9 @@ create policy "own_wear_log" on wear_log for all using (
 );
 
 create policy "own_outfits" on outfit_suggestions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "own_ai_calls_read" on ai_calls for select using (auth.uid() = user_id);
+create policy "own_ai_calls_insert" on ai_calls for insert with check (auth.uid() = user_id);
 
 -- Storage ------------------------------------------------------------------------
 
